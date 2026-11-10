@@ -3,90 +3,377 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Full Stack 테스트</title>
+<title>제주마켓 · 장바구니</title>
+<meta name="description" content="제주 특산품 장바구니 데모 (Vercel + Railway + Supabase)">
 <style>
-  body{font-family:"Malgun Gothic",sans-serif;max-width:560px;margin:40px auto;padding:0 16px;color:#1d2b33}
-  h1{font-size:1.5rem}
-  .status{padding:10px 14px;border-radius:8px;background:#eee;margin-bottom:20px;font-size:.95rem}
-  .ok{background:#dff5e3;color:#176b2c}.err{background:#fde2e2;color:#a11}
-  form{display:flex;gap:8px;margin-bottom:16px}
-  input{flex:1;padding:10px;border:1px solid #bbb;border-radius:8px;font-size:1rem}
-  button{padding:10px 16px;border:0;border-radius:8px;background:#0e7c9b;color:#fff;font-weight:700;cursor:pointer}
-  li{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;list-style:none}
-  li button{background:#c33;padding:4px 10px;font-size:.8rem}
-  ul{padding:0}
-  small{color:#888}
+  :root{
+    --bg:#f6f7fb; --card:#ffffff; --ink:#1c2430; --muted:#6b7686; --line:#e8ebf2;
+    --brand:#ff6b35; --brand-d:#e5551f; --brand-soft:#fff1ea;
+    --ok:#1f9d55; --err:#d64545; --shadow:0 8px 30px rgba(28,36,48,.08);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#12151c; --card:#1b2029; --ink:#eef1f6; --muted:#98a2b3; --line:#2a313d;
+           --brand-soft:#33231c; --shadow:0 8px 30px rgba(0,0,0,.35); }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:"Pretendard","Malgun Gothic",system-ui,-apple-system,sans-serif;line-height:1.5}
+  button{font:inherit;cursor:pointer}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+  /* 헤더 */
+  header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);
+         backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .bar{display:flex;align-items:center;gap:16px;height:64px}
+  .logo{font-weight:800;font-size:1.25rem;letter-spacing:-.02em}
+  .logo span{color:var(--brand)}
+  .spacer{flex:1}
+  .cart-btn{position:relative;display:flex;align-items:center;gap:8px;padding:10px 16px;border:0;
+            border-radius:999px;background:var(--brand);color:#fff;font-weight:700;
+            box-shadow:0 6px 16px rgba(255,107,53,.35);transition:transform .15s,background .15s}
+  .cart-btn:hover{background:var(--brand-d);transform:translateY(-1px)}
+  .badge{min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#fff;color:var(--brand);
+         font-size:.8rem;display:grid;place-items:center}
+  .bump{animation:bump .35s}
+  @keyframes bump{40%{transform:scale(1.25)}}
+
+  /* 히어로 */
+  .hero{margin:28px 0 8px;padding:34px 30px;border-radius:24px;color:#fff;
+        background:linear-gradient(135deg,#ff8a4c 0%,#ff5a36 55%,#e8431f 100%);
+        box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .hero h1{margin:0 0 6px;font-size:clamp(1.5rem,4vw,2.1rem);letter-spacing:-.02em}
+  .hero p{margin:0;opacity:.92}
+  .hero .deco{position:absolute;right:20px;bottom:-14px;font-size:6rem;opacity:.25}
+
+  .status{display:inline-flex;align-items:center;gap:8px;margin:14px 0 0;padding:6px 12px;
+          border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:.82rem;color:var(--muted)}
+  .dot{width:8px;height:8px;border-radius:50%;background:#bbb}
+  .dot.ok{background:var(--ok)} .dot.err{background:var(--err)}
+
+  /* 필터 */
+  .tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:22px 0 16px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);
+        color:var(--ink);font-size:.9rem;transition:.15s}
+  .chip:hover{border-color:var(--brand)}
+  .chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .search{flex:1;min-width:180px;max-width:280px;margin-left:auto;padding:10px 14px;border-radius:12px;
+          border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit}
+  .search:focus{outline:2px solid var(--brand)}
+
+  /* 상품 */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:18px;margin-bottom:60px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;
+        display:flex;flex-direction:column;transition:transform .18s,box-shadow .18s}
+  .card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+  .thumb{height:150px;display:grid;place-items:center;font-size:4.2rem;
+         background:linear-gradient(135deg,var(--brand-soft),var(--card))}
+  .info{padding:16px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .cat{font-size:.74rem;color:var(--brand);font-weight:700}
+  .name{font-weight:700}
+  .desc{color:var(--muted);font-size:.85rem;flex:1}
+  .row{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+  .price{font-weight:800;font-size:1.05rem}
+  .add{padding:9px 14px;border:0;border-radius:12px;background:var(--brand-soft);color:var(--brand);
+       font-weight:700;transition:.15s}
+  .add:hover{background:var(--brand);color:#fff}
+  .skeleton{height:285px;border-radius:20px;background:linear-gradient(90deg,var(--card) 25%,var(--line) 50%,var(--card) 75%);
+            background-size:200% 100%;animation:sh 1.2s infinite}
+  @keyframes sh{to{background-position:-200% 0}}
+  .empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:50px 0}
+
+  /* 장바구니 서랍 */
+  .overlay{position:fixed;inset:0;background:rgba(10,14,20,.5);opacity:0;pointer-events:none;transition:.25s;z-index:30}
+  .overlay.open{opacity:1;pointer-events:auto}
+  aside{position:fixed;top:0;right:0;height:100%;width:min(420px,100%);background:var(--card);z-index:40;
+        transform:translateX(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;
+        box-shadow:-10px 0 40px rgba(0,0,0,.2)}
+  aside.open{transform:none}
+  .a-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line)}
+  .a-head h2{margin:0;font-size:1.15rem}
+  .icon{border:0;background:transparent;color:var(--muted);font-size:1.3rem;padding:4px 8px;border-radius:8px}
+  .icon:hover{background:var(--line)}
+  .ship{padding:14px 20px;background:var(--brand-soft);font-size:.86rem}
+  .meter{height:8px;border-radius:99px;background:var(--line);margin-top:8px;overflow:hidden}
+  .meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb36b,var(--brand));transition:width .4s}
+  .items{flex:1;overflow:auto;padding:6px 20px}
+  .item{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+  .item .e{width:56px;height:56px;border-radius:14px;background:var(--brand-soft);display:grid;place-items:center;font-size:1.9rem}
+  .item .n{font-weight:700;font-size:.95rem}
+  .item .p{color:var(--muted);font-size:.82rem}
+  .qty{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px;margin-top:6px}
+  .qty button{width:28px;height:28px;border:0;background:transparent;color:var(--ink);font-size:1rem}
+  .qty button:hover{background:var(--line)}
+  .qty span{min-width:26px;text-align:center;font-weight:700;font-size:.9rem}
+  .item .right{text-align:right}
+  .item .sub{font-weight:800}
+  .del{border:0;background:transparent;color:var(--muted);font-size:.78rem;margin-top:6px;text-decoration:underline}
+  .del:hover{color:var(--err)}
+  .blank{text-align:center;color:var(--muted);padding:70px 0}
+  .blank b{display:block;font-size:3rem;margin-bottom:8px}
+  .a-foot{padding:16px 20px;border-top:1px solid var(--line)}
+  .sum{display:flex;justify-content:space-between;font-size:.92rem;color:var(--muted);margin-bottom:6px}
+  .sum.total{color:var(--ink);font-weight:800;font-size:1.15rem;margin:10px 0 14px}
+  .order{width:100%;padding:14px;border:0;border-radius:14px;background:var(--brand);color:#fff;font-weight:800;font-size:1rem}
+  .order:disabled{background:var(--line);color:var(--muted);cursor:not-allowed}
+  .clear{display:block;margin:12px auto 0;border:0;background:transparent;color:var(--muted);font-size:.85rem;text-decoration:underline}
+
+  /* 토스트 */
+  #toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,30px);opacity:0;z-index:60;
+         padding:12px 20px;border-radius:14px;background:var(--ink);color:var(--bg);font-weight:600;
+         transition:.3s;pointer-events:none;max-width:90vw}
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+  #toast.err{background:var(--err);color:#fff}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:0 0 40px}
 </style>
 </head>
 <body>
-<h1>Vercel + Railway + Supabase</h1>
-<div id="status" class="status">API 확인 중...</div>
+<header>
+  <div class="wrap bar">
+    <div class="logo">제주<span>마켓</span></div>
+    <div class="spacer"></div>
+    <button class="cart-btn" id="openCart" aria-label="장바구니 열기">
+      🛒 장바구니 <span class="badge" id="badge">0</span>
+    </button>
+  </div>
+</header>
 
-<form id="form">
-  <input id="content" placeholder="메모를 입력하세요" maxlength="500" required>
-  <button>추가</button>
-</form>
-<ul id="list"></ul>
-<small>API: <span id="apiurl"></span></small>
+<main class="wrap">
+  <section class="hero">
+    <h1>제주의 맛을 집으로 🍊</h1>
+    <p>50,000원 이상 구매하면 배송비 무료! 마음에 드는 상품을 담아 보세요.</p>
+    <div class="deco">🌴</div>
+  </section>
+  <div class="status"><span class="dot" id="dot"></span><span id="statusText">서버 확인 중...</span></div>
+
+  <div class="tools">
+    <div class="chips" id="chips"></div>
+    <input class="search" id="search" type="search" placeholder="상품 검색" aria-label="상품 검색">
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+<footer>Vercel · Railway(FastAPI) · Supabase</footer>
+
+<div class="overlay" id="overlay"></div>
+<aside id="drawer" aria-label="장바구니" aria-hidden="true">
+  <div class="a-head"><h2>🛒 장바구니</h2><button class="icon" id="closeCart" aria-label="닫기">✕</button></div>
+  <div class="ship" id="shipMsg"></div>
+  <div class="items" id="items"></div>
+  <div class="a-foot">
+    <div class="sum"><span>상품 금액</span><span id="sSub">0원</span></div>
+    <div class="sum"><span>배송비</span><span id="sShip">0원</span></div>
+    <div class="sum total"><span>총 결제 금액</span><span id="sTotal">0원</span></div>
+    <button class="order" id="order" disabled>주문하기</button>
+    <button class="clear" id="clear" hidden>장바구니 비우기</button>
+  </div>
+</aside>
+<div id="toast" role="status"></div>
 
 <script>
-  // 로컬이면 localhost:8000, 배포(Vercel)하면 Railway 주소를 사용합니다.
-  const RAILWAY_URL = "https://YOUR-APP.up.railway.app"; // 배포 후 본인 주소로 교체
+  // 로컬에서 열면 내 컴퓨터의 FastAPI, 배포(Vercel)에서는 Railway 주소를 사용합니다.
+  const RAILWAY_URL = "https://web-production-6b89.up.railway.app";
   const isLocal = ["localhost", "127.0.0.1", ""].includes(location.hostname);
   const API = isLocal ? "http://localhost:8000" : RAILWAY_URL;
-  document.getElementById("apiurl").textContent = API;
 
-  const $status = document.getElementById("status");
-  const $list = document.getElementById("list");
+  // 로그인 없이 브라우저마다 고유한 장바구니 번호를 만들어 저장합니다.
+  function getCartId() {
+    try {
+      let id = localStorage.getItem("cart_id");
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2));
+        localStorage.setItem("cart_id", id);
+      }
+      return id;
+    } catch { return "tmp-" + Math.random().toString(36).slice(2, 12); }
+  }
+  const CART_ID = getCartId();
 
-  async function api(path, opts) {
-    const r = await fetch(API + path, opts);
-    if (!r.ok) throw new Error(r.status + " " + (await r.text()));
+  const $ = id => document.getElementById(id);
+  const won = n => n.toLocaleString("ko-KR") + "원";
+  let products = [], cart = null, category = "전체", query = "";
+
+  async function api(path, opts = {}) {
+    const r = await fetch(API + path, {
+      ...opts,
+      headers: { "Content-Type": "application/json", ...(opts.headers || {}) },
+    });
+    if (!r.ok) {
+      let msg = r.status + "";
+      try { const j = await r.json(); msg = j.detail || msg; } catch {}
+      throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+    }
     return r.json();
   }
 
-  async function check() {
+  let toastTimer;
+  function toast(msg, isErr) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.className = "show" + (isErr ? " err" : "");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => (t.className = ""), 2200);
+  }
+
+  /* ---------- 상품 목록 ---------- */
+  function renderChips() {
+    const cats = ["전체", ...new Set(products.map(p => p.category))];
+    $("chips").replaceChildren(...cats.map(c => {
+      const b = document.createElement("button");
+      b.className = "chip" + (c === category ? " on" : "");
+      b.textContent = c;
+      b.onclick = () => { category = c; renderChips(); renderGrid(); };
+      return b;
+    }));
+  }
+
+  function renderGrid() {
+    const list = products.filter(p =>
+      (category === "전체" || p.category === category) &&
+      (p.name + p.description).toLowerCase().includes(query.toLowerCase()));
+    if (!list.length) {
+      const d = document.createElement("div");
+      d.className = "empty"; d.textContent = "조건에 맞는 상품이 없어요.";
+      $("grid").replaceChildren(d); return;
+    }
+    $("grid").replaceChildren(...list.map(p => {
+      const el = document.createElement("article");
+      el.className = "card";
+      el.innerHTML = '<div class="thumb"></div><div class="info"><div class="cat"></div>' +
+        '<div class="name"></div><div class="desc"></div>' +
+        '<div class="row"><span class="price"></span><button class="add">담기</button></div></div>';
+      el.querySelector(".thumb").textContent = p.emoji;
+      el.querySelector(".cat").textContent = p.category;
+      el.querySelector(".name").textContent = p.name;
+      el.querySelector(".desc").textContent = p.description;
+      el.querySelector(".price").textContent = won(p.price);
+      el.querySelector(".add").onclick = () => addToCart(p);
+      return el;
+    }));
+  }
+
+  function showSkeleton() {
+    $("grid").replaceChildren(...Array.from({ length: 8 }, () => {
+      const d = document.createElement("div"); d.className = "skeleton"; return d;
+    }));
+  }
+
+  /* ---------- 장바구니 ---------- */
+  function renderCart() {
+    if (!cart) return;
+    $("badge").textContent = cart.total_quantity;
+    const wrap = $("items");
+    if (!cart.items.length) {
+      wrap.innerHTML = '<div class="blank"><b>🧺</b>장바구니가 비어 있어요</div>';
+    } else {
+      wrap.replaceChildren(...cart.items.map(it => {
+        const row = document.createElement("div");
+        row.className = "item";
+        row.innerHTML = '<div class="e"></div><div><div class="n"></div><div class="p"></div>' +
+          '<div class="qty"><button data-d="-1" aria-label="수량 줄이기">−</button><span></span>' +
+          '<button data-d="1" aria-label="수량 늘리기">+</button></div></div>' +
+          '<div class="right"><div class="sub"></div><button class="del">삭제</button></div>';
+        row.querySelector(".e").textContent = it.emoji;
+        row.querySelector(".n").textContent = it.name;
+        row.querySelector(".p").textContent = won(it.price);
+        row.querySelector(".qty span").textContent = it.quantity;
+        row.querySelector(".sub").textContent = won(it.subtotal);
+        row.querySelectorAll(".qty button").forEach(b => {
+          b.onclick = () => changeQty(it, it.quantity + Number(b.dataset.d));
+        });
+        row.querySelector(".del").onclick = () => removeItem(it);
+        return row;
+      }));
+    }
+    $("sSub").textContent = won(cart.subtotal);
+    $("sShip").textContent = cart.shipping ? won(cart.shipping) : (cart.subtotal ? "무료" : "0원");
+    $("sTotal").textContent = won(cart.total);
+    $("order").disabled = !cart.items.length;
+    $("clear").hidden = !cart.items.length;
+
+    const left = cart.free_shipping_from - cart.subtotal;
+    $("shipMsg").innerHTML = "";
+    const msg = document.createElement("div");
+    msg.textContent = cart.subtotal === 0 ? "50,000원 이상 구매 시 무료배송"
+      : left > 0 ? "무료배송까지 " + won(left) + " 남았어요 🚚" : "🎉 무료배송 혜택이 적용됐어요!";
+    const meter = document.createElement("div"); meter.className = "meter";
+    const bar = document.createElement("i");
+    bar.style.width = Math.min(100, (cart.subtotal / cart.free_shipping_from) * 100) + "%";
+    meter.append(bar);
+    $("shipMsg").append(msg, meter);
+  }
+
+  async function loadCart() {
+    cart = await api("/cart/" + encodeURIComponent(CART_ID));
+    renderCart();
+  }
+
+  async function addToCart(p) {
     try {
-      await api("/health");
+      cart = await api("/cart/" + encodeURIComponent(CART_ID) + "/items", {
+        method: "POST", body: JSON.stringify({ product_id: p.id, quantity: 1 }) });
+      renderCart();
+      $("badge").classList.remove("bump"); void $("badge").offsetWidth; $("badge").classList.add("bump");
+      toast(p.emoji + " " + p.name + " 담았어요");
+    } catch (e) { toast("담기 실패: " + e.message, true); }
+  }
+
+  async function changeQty(it, q) {
+    if (q < 1) return removeItem(it);
+    if (q > 99) return toast("최대 99개까지 담을 수 있어요", true);
+    try {
+      cart = await api("/cart/" + encodeURIComponent(CART_ID) + "/items/" + it.product_id, {
+        method: "PATCH", body: JSON.stringify({ quantity: q }) });
+      renderCart();
+    } catch (e) { toast("수량 변경 실패: " + e.message, true); }
+  }
+
+  async function removeItem(it) {
+    try {
+      cart = await api("/cart/" + encodeURIComponent(CART_ID) + "/items/" + it.product_id, { method: "DELETE" });
+      renderCart(); toast(it.name + " 삭제했어요");
+    } catch (e) { toast("삭제 실패: " + e.message, true); }
+  }
+
+  async function clearCart() {
+    if (!confirm("장바구니를 모두 비울까요?")) return;
+    try {
+      cart = await api("/cart/" + encodeURIComponent(CART_ID), { method: "DELETE" });
+      renderCart(); toast("장바구니를 비웠어요");
+    } catch (e) { toast("비우기 실패: " + e.message, true); }
+  }
+
+  /* ---------- 서랍 열고 닫기 ---------- */
+  function openDrawer(open) {
+    $("drawer").classList.toggle("open", open);
+    $("overlay").classList.toggle("open", open);
+    $("drawer").setAttribute("aria-hidden", String(!open));
+    if (open) $("closeCart").focus(); else $("openCart").focus();
+  }
+  $("openCart").onclick = () => openDrawer(true);
+  $("closeCart").onclick = () => openDrawer(false);
+  $("overlay").onclick = () => openDrawer(false);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") openDrawer(false); });
+  $("clear").onclick = clearCart;
+  $("order").onclick = () => toast("주문 기능은 준비 중이에요 🙏");
+  $("search").addEventListener("input", e => { query = e.target.value; renderGrid(); });
+
+  /* ---------- 시작 ---------- */
+  async function init() {
+    showSkeleton();
+    try {
       await api("/health/db");
-      $status.textContent = "✅ 프론트 → FastAPI → Supabase 연결 정상";
-      $status.className = "status ok";
+      $("dot").className = "dot ok"; $("statusText").textContent = "서버 · 데이터베이스 연결됨";
+      products = await api("/products");
+      renderChips(); renderGrid();
+      await loadCart();
     } catch (e) {
-      $status.textContent = "❌ " + e.message;
-      $status.className = "status err";
+      $("dot").className = "dot err"; $("statusText").textContent = "연결 실패: " + e.message;
+      const d = document.createElement("div"); d.className = "empty";
+      d.textContent = "상품을 불러오지 못했어요. 서버 상태를 확인해 주세요.";
+      $("grid").replaceChildren(d);
     }
   }
-
-  async function load() {
-    try {
-      const notes = await api("/notes");
-      $list.innerHTML = "";
-      notes.forEach(n => {
-        const li = document.createElement("li");
-        const span = document.createElement("span");
-        span.textContent = n.content;
-        const btn = document.createElement("button");
-        btn.textContent = "삭제";
-        btn.onclick = async () => { await api("/notes/" + n.id, {method: "DELETE"}); load(); };
-        li.append(span, btn);
-        $list.append(li);
-      });
-    } catch (e) { /* 상태 표시줄에 이미 표시됨 */ }
-  }
-
-  document.getElementById("form").addEventListener("submit", async ev => {
-    ev.preventDefault();
-    const input = document.getElementById("content");
-    await api("/notes", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({content: input.value})
-    });
-    input.value = "";
-    load();
-  });
-
-  check().then(load);
+  init();
 </script>
 </body>
 </html>
