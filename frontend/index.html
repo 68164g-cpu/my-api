@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Full Stack 테스트</title>
+<style>
+  body{font-family:"Malgun Gothic",sans-serif;max-width:560px;margin:40px auto;padding:0 16px;color:#1d2b33}
+  h1{font-size:1.5rem}
+  .status{padding:10px 14px;border-radius:8px;background:#eee;margin-bottom:20px;font-size:.95rem}
+  .ok{background:#dff5e3;color:#176b2c}.err{background:#fde2e2;color:#a11}
+  form{display:flex;gap:8px;margin-bottom:16px}
+  input{flex:1;padding:10px;border:1px solid #bbb;border-radius:8px;font-size:1rem}
+  button{padding:10px 16px;border:0;border-radius:8px;background:#0e7c9b;color:#fff;font-weight:700;cursor:pointer}
+  li{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;list-style:none}
+  li button{background:#c33;padding:4px 10px;font-size:.8rem}
+  ul{padding:0}
+  small{color:#888}
+</style>
+</head>
+<body>
+<h1>Vercel + Railway + Supabase</h1>
+<div id="status" class="status">API 확인 중...</div>
+
+<form id="form">
+  <input id="content" placeholder="메모를 입력하세요" maxlength="500" required>
+  <button>추가</button>
+</form>
+<ul id="list"></ul>
+<small>API: <span id="apiurl"></span></small>
+
+<script>
+  // 로컬이면 localhost:8000, 배포(Vercel)하면 Railway 주소를 사용합니다.
+  const RAILWAY_URL = "https://YOUR-APP.up.railway.app"; // 배포 후 본인 주소로 교체
+  const isLocal = ["localhost", "127.0.0.1", ""].includes(location.hostname);
+  const API = isLocal ? "http://localhost:8000" : RAILWAY_URL;
+  document.getElementById("apiurl").textContent = API;
+
+  const $status = document.getElementById("status");
+  const $list = document.getElementById("list");
+
+  async function api(path, opts) {
+    const r = await fetch(API + path, opts);
+    if (!r.ok) throw new Error(r.status + " " + (await r.text()));
+    return r.json();
+  }
+
+  async function check() {
+    try {
+      await api("/health");
+      await api("/health/db");
+      $status.textContent = "✅ 프론트 → FastAPI → Supabase 연결 정상";
+      $status.className = "status ok";
+    } catch (e) {
+      $status.textContent = "❌ " + e.message;
+      $status.className = "status err";
+    }
+  }
+
+  async function load() {
+    try {
+      const notes = await api("/notes");
+      $list.innerHTML = "";
+      notes.forEach(n => {
+        const li = document.createElement("li");
+        const span = document.createElement("span");
+        span.textContent = n.content;
+        const btn = document.createElement("button");
+        btn.textContent = "삭제";
+        btn.onclick = async () => { await api("/notes/" + n.id, {method: "DELETE"}); load(); };
+        li.append(span, btn);
+        $list.append(li);
+      });
+    } catch (e) { /* 상태 표시줄에 이미 표시됨 */ }
+  }
+
+  document.getElementById("form").addEventListener("submit", async ev => {
+    ev.preventDefault();
+    const input = document.getElementById("content");
+    await api("/notes", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({content: input.value})
+    });
+    input.value = "";
+    load();
+  });
+
+  check().then(load);
+</script>
+</body>
+</html>

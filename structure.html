@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>우리 서비스는 이렇게 움직여요</title>
+<style>
+  :root{--bg:#f7f4ee;--ink:#1d2b33;--sea:#0e7c9b;--orange:#f28c28;--green:#2e9e5b;--card:#fff;--line:#d9d2c3}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Pretendard","Malgun Gothic",sans-serif;background:var(--bg);color:var(--ink);line-height:1.7;padding:0 16px 80px}
+  .wrap{max-width:980px;margin:0 auto}
+  h1{font-size:clamp(1.6rem,4.5vw,2.4rem);margin:40px 0 6px}
+  h2{font-size:1.35rem;margin:56px 0 14px}
+  .lead{color:#556;margin-bottom:10px}
+  .card{background:var(--card);border-radius:16px;padding:20px;box-shadow:0 3px 14px rgba(0,0,0,.07)}
+
+  /* 모드 전환 */
+  .modes{display:inline-flex;background:#e6dfd0;border-radius:30px;padding:4px;margin:18px 0}
+  .modes button{border:0;background:transparent;padding:8px 20px;border-radius:26px;font-weight:700;cursor:pointer;font-size:.95rem;color:#665}
+  .modes button.on{background:var(--sea);color:#fff}
+
+  /* 무대 */
+  .stage{position:relative;height:250px;margin:10px 0 0}
+  .node{position:absolute;top:28px;width:30%;max-width:250px;transform:translateX(-50%);text-align:center;
+    background:#fff;border:3px solid var(--line);border-radius:18px;padding:12px 8px;transition:.3s}
+  .node.active{border-color:var(--orange);box-shadow:0 0 0 6px rgba(242,140,40,.2);transform:translateX(-50%) scale(1.05)}
+  .node .em{font-size:2.2rem}
+  .node b{display:block;font-size:1rem}
+  .node small{display:block;color:#667;font-size:.78rem;line-height:1.4;margin-top:2px}
+  .node code{background:#f1ede2;border-radius:6px;padding:1px 6px;font-size:.75rem;display:inline-block;margin-top:4px}
+  #nc{left:15%}#na{left:50%}#nd{left:85%}
+  .rail{position:absolute;top:130px;left:15%;right:15%;height:0;border-top:3px dashed var(--line)}
+  #packet{position:absolute;top:150px;left:15%;font-size:2.2rem;transform:translateX(-50%);
+    transition:left 1.1s ease-in-out;filter:drop-shadow(0 3px 4px rgba(0,0,0,.25))}
+  #packet.pop{animation:pop .5s}
+  @keyframes pop{0%{transform:translateX(-50%) scale(.4)}60%{transform:translateX(-50%) scale(1.4)}100%{transform:translateX(-50%) scale(1)}}
+  #bubble{position:absolute;top:195px;left:0;right:0;text-align:center;font-weight:700;color:var(--sea);font-size:.95rem}
+
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 16px}
+  .controls button{border:0;border-radius:30px;padding:10px 22px;font-weight:700;cursor:pointer;font-size:.95rem;background:var(--orange);color:#fff}
+  .controls button.sec{background:#fff;color:var(--ink);border:2px solid var(--line)}
+  .dots{display:flex;gap:6px;margin-bottom:14px}
+  .dots i{flex:1;height:6px;border-radius:3px;background:#e2dccd;transition:.3s}
+  .dots i.done{background:var(--green)}.dots i.now{background:var(--orange)}
+
+  .say h3{font-size:1.15rem;margin-bottom:4px}
+  .say p{color:#334}
+  pre{background:#1e2a30;color:#e8f1f4;border-radius:12px;padding:14px;margin-top:12px;font-size:.84rem;overflow:auto;line-height:1.6}
+  pre .k{color:#ffb86b}
+
+  /* 코드 읽기 */
+  .parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+  .part{border-left:6px solid var(--sea)}
+  .part .no{display:inline-block;background:var(--sea);color:#fff;border-radius:50%;width:26px;height:26px;text-align:center;font-weight:700;margin-right:6px}
+  .part h3{font-size:1.02rem;margin-bottom:6px}
+  .part p{font-size:.92rem;color:#445}
+  .part pre{font-size:.78rem;padding:10px}
+
+  /* 용어 표 */
+  table{width:100%;border-collapse:collapse;font-size:.93rem}
+  th,td{padding:10px 8px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}
+  th{color:#667;font-size:.82rem}
+  .tip{background:#fff7e8;border:2px solid #f6d79b;border-radius:14px;padding:16px;margin-top:14px}
+  .tip b{color:#b25f00}
+
+  @media(max-width:640px){
+    .stage{height:290px}
+    .node{width:31%;padding:8px 4px}
+    .node small{font-size:.68rem}.node .em{font-size:1.7rem}
+    #bubble{top:215px;font-size:.85rem}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>🍽️ 우리 서비스는 이렇게 움직여요</h1>
+<p class="lead"><code>main.py</code>를 읽고 정리했습니다. 복잡한 용어는 <b>식당</b>에 빗대어 설명합니다.</p>
+
+<div class="card" style="margin-top:20px">
+  <b>한 줄 요약</b><br>
+  <b>손님(화면)</b>이 <b>웨이터(FastAPI, main.py)</b>에게 주문하면, 웨이터가 <b>창고(Supabase)</b>에서 꺼내거나 넣어서 돌려줍니다.
+  손님은 창고에 직접 들어갈 수 없고, 반드시 웨이터를 거칩니다. 창고 열쇠는 웨이터만 갖고 있습니다.
+</div>
+
+<h2>① 메모 한 줄을 저장하면 벌어지는 일</h2>
+<p class="lead">아래에서 <b>▶ 재생</b>을 눌러 보세요. 위치는 보기 방식에 따라 달라집니다.</p>
+
+<div class="modes" id="modes">
+  <button class="on" data-m="local">🏠 지금 (내 컴퓨터에서 테스트)</button>
+  <button data-m="cloud">☁️ 나중 (인터넷에 배포)</button>
+</div>
+
+<div class="card">
+  <div class="stage">
+    <div class="rail"></div>
+    <div class="node active" id="nc"><div class="em">🧑‍💻</div><b>손님 · 화면</b><small id="tc">frontend/index.html<br>내 컴퓨터 · 포트 3000</small></div>
+    <div class="node" id="na"><div class="em">🧑‍🍳</div><b>웨이터 · 서버</b><small id="ta">main.py (FastAPI)<br>내 컴퓨터 · 포트 8000</small><code id="ua">127.0.0.1:8000</code></div>
+    <div class="node" id="nd"><div class="em">🗄️</div><b>창고 · DB</b><small>Supabase<br>인터넷 클라우드</small><code>notes 표</code></div>
+    <div id="packet">✍️</div>
+    <div id="bubble"></div>
+  </div>
+
+  <div class="controls">
+    <button id="play">▶ 재생</button>
+    <button class="sec" id="next">⏭ 다음 단계</button>
+    <button class="sec" id="reset">⟲ 처음으로</button>
+  </div>
+  <div class="dots" id="dots"></div>
+  <div class="say"><h3 id="st"></h3><p id="sp"></p><pre id="sc"></pre></div>
+</div>
+
+<h2>② main.py를 6조각으로 읽기</h2>
+<div class="parts">
+  <div class="card part"><h3><span class="no">1</span>필요한 도구 가져오기</h3>
+    <p>주방에 도구를 들이는 단계입니다. FastAPI는 웨이터 훈련 키트, supabase는 창고와 통화하는 전화기입니다.</p>
+    <pre>from fastapi import FastAPI
+from supabase import create_client</pre></div>
+
+  <div class="card part"><h3><span class="no">2</span>비밀 쪽지(.env) 읽기</h3>
+    <p><code>.env</code>는 창고 주소와 열쇠가 적힌 쪽지입니다. 코드에 직접 쓰면 유출되니 따로 보관하고, <code>.gitignore</code>가 GitHub에 올라가지 않게 막아 줍니다.</p>
+    <pre>SUPABASE_URL = os.environ["SUPABASE_URL"]
+SUPABASE_SECRET_KEY = ...</pre></div>
+
+  <div class="card part"><h3><span class="no">3</span>창고와 전화 연결</h3>
+    <p>쪽지의 주소와 열쇠로 창고에 전화를 겁니다. 아까 <b>Invalid URL</b> 오류는 이 줄에서 주소가 잘못돼서 났습니다.</p>
+    <pre>sb = create_client(URL, KEY)</pre></div>
+
+  <div class="card part"><h3><span class="no">4</span>출입 허가 명단(CORS)</h3>
+    <p>브라우저는 허가받지 않은 주소의 요청을 막습니다. <code>FRONT_ORIGINS</code>는 "이 손님들은 들여보내 주세요" 명단입니다. 여기에 화면 주소가 없으면 브라우저에서 막힙니다.</p>
+    <pre>allow_origins=FRONT_ORIGINS</pre></div>
+
+  <div class="card part"><h3><span class="no">5</span>메뉴판(주소별 할 일)</h3>
+    <p>주소마다 웨이터가 할 일이 정해져 있습니다.</p>
+    <pre>GET    /health        → 살아있음?
+GET    /health/db     → 창고 연결됨?
+GET    /notes         → 메모 목록
+POST   /notes         → 메모 저장
+DELETE /notes/{id}    → 메모 삭제</pre></div>
+
+  <div class="card part"><h3><span class="no">6</span>주문서 양식 검사</h3>
+    <p>빈 메모나 너무 긴 메모는 웨이터가 창고에 가기 전에 돌려보냅니다.</p>
+    <pre>class NoteIn(BaseModel):
+    content: str  # 1~500자</pre></div>
+</div>
+
+<h2>③ 자주 헷갈리는 말</h2>
+<div class="card">
+<table>
+  <tr><th>말</th><th>쉬운 뜻</th></tr>
+  <tr><td><b>127.0.0.1</b></td><td>"나 자신"을 뜻하는 주소입니다(= localhost). 인터넷이 아니라 <b>내 컴퓨터 안</b>에서만 통하는 주소입니다.</td></tr>
+  <tr><td><b>포트 8000</b></td><td>한 건물(내 컴퓨터) 안의 방 번호입니다. 웨이터는 8000번 방, 화면은 3000번 방에 있습니다.</td></tr>
+  <tr><td><b>uvicorn</b></td><td><code>main.py</code>를 켜 놓는 "가게 문 여는" 프로그램입니다. 이 터미널이 켜져 있어야 서버가 살아 있습니다. 창을 닫으면 서버도 꺼집니다.</td></tr>
+  <tr><td><b>Railway</b></td><td>나중에 <code>main.py</code>를 24시간 켜 둘 인터넷 위의 컴퓨터를 빌려 주는 곳입니다. <b>지금 로컬 테스트에서는 쓰이지 않습니다.</b></td></tr>
+  <tr><td><b>Vercel</b></td><td>나중에 화면(<code>frontend</code>)을 인터넷에 올려 주는 곳입니다. 이것도 지금은 쓰이지 않습니다.</td></tr>
+  <tr><td><b>Supabase</b></td><td>데이터를 저장하는 창고입니다. 로컬 테스트 때도 <b>인터넷에 있는 진짜 창고</b>를 씁니다.</td></tr>
+  <tr><td><b>.env</b></td><td>주소·열쇠 같은 비밀을 적어 두는 쪽지 파일입니다. 절대 GitHub에 올리거나 남에게 보내면 안 됩니다.</td></tr>
+</table>
+<div class="tip"><b>정리</b>: 지금 내 컴퓨터에서는 <b>터미널 2개</b>가 켜져 있어야 합니다.<br>
+터미널 1 = 웨이터(<code>uvicorn</code>, 8000번 방), 터미널 2 = 손님 화면(<code>http.server</code>, 3000번 방).<br>
+Railway는 말씀하신 "127.0.0.1:8000 서버"가 아니라, <b>같은 코드를 인터넷에 옮겨 켜는 곳</b>입니다. 그래서 위의 "나중" 모드로 바꾸면 위치만 달라지고 흐름은 똑같습니다.</div>
+</div>
+
+</div>
+
+<script>
+const LOCAL = {tc:"frontend/index.html<br>내 컴퓨터 · 포트 3000", ta:"main.py (FastAPI)<br>내 컴퓨터 · 포트 8000", ua:"127.0.0.1:8000"};
+const CLOUD = {tc:"frontend/index.html<br>Vercel (인터넷)", ta:"main.py (FastAPI)<br>Railway (인터넷)", ua:"xxx.up.railway.app"};
+let mode = "local";
+
+const steps = [
+  {at:"nc", icon:"✍️", bubble:"메모 입력 → [추가] 클릭",
+   t:"1. 손님이 주문서를 씁니다",
+   p:"화면에서 '우유 사기'라고 쓰고 [추가]를 누릅니다. 이 화면은 frontend/index.html 입니다.",
+   c:'document.getElementById("form")\n  .addEventListener("submit", ...)'},
+  {at:"na", icon:"✉️", bubble:"주문서를 웨이터에게 보냄 (POST /notes)",
+   t:"2. 주문서가 웨이터에게 갑니다",
+   p:"브라우저가 웨이터 주소로 '메모 저장해 주세요'라는 요청을 보냅니다. 편지의 겉봉에는 주소 + 방 번호 + 할 일이 적혀 있습니다.",
+   c:()=>'fetch("'+(mode==="local"?"http://127.0.0.1:8000":"https://xxx.up.railway.app")+'/notes", {method:"POST", ...})'},
+  {at:"na", icon:"🔍", bubble:"출입 명단 확인 + 주문서 양식 검사",
+   t:"3. 웨이터가 확인합니다",
+   p:"① 이 손님은 허가 명단(FRONT_ORIGINS)에 있는가? ② 메모가 비어 있거나 500자를 넘지 않는가? 둘 다 통과해야 다음으로 갑니다.",
+   c:'allow_origins=FRONT_ORIGINS\n\nclass NoteIn(BaseModel):\n    content: str  # 1~500자'},
+  {at:"nd", icon:"🔑", bubble:"비밀 열쇠로 창고에 저장 요청",
+   t:"4. 웨이터가 창고에 연락합니다",
+   p:"웨이터만 가진 열쇠(.env의 SUPABASE_SECRET_KEY)로 창고에 '이 내용을 notes 표에 넣어 주세요'라고 요청합니다. 손님은 이 열쇠를 볼 수 없습니다.",
+   c:'sb.table("notes")\n  .insert({"content": note.content})\n  .execute()'},
+  {at:"nd", icon:"💾", bubble:"notes 표에 한 줄 저장 완료!",
+   t:"5. 창고가 장부에 적습니다",
+   p:"Supabase의 notes 표에 새 줄(번호, 내용, 시간)이 생깁니다. 이제 컴퓨터를 꺼도 데이터는 남아 있습니다.",
+   c:'id | content   | created_at\n 7 | 우유 사기 | 2026-11-10 14:30'},
+  {at:"na", icon:"✅", bubble:"창고 → 웨이터: 저장됐어요",
+   t:"6. 웨이터가 결과를 받습니다",
+   p:"창고가 '저장했어요, 번호는 7번입니다'라고 알려 주고, 웨이터는 이를 손님에게 전달할 준비를 합니다.",
+   c:'return res.data[0]'},
+  {at:"nc", icon:"📋", bubble:"화면에 새 메모가 나타남",
+   t:"7. 손님 화면이 갱신됩니다",
+   p:"웨이터의 답을 받은 화면이 목록을 다시 불러와(GET /notes) 새 메모를 보여 줍니다. 한 바퀴 끝!",
+   c:'GET /notes → [{id:7, content:"우유 사기"}, ...]'}
+];
+
+const $ = id => document.getElementById(id);
+const packet = $("packet");
+const pos = {nc:"15%", na:"50%", nd:"85%"};
+let cur = -1, playing = false, timer = null;
+
+const dots = $("dots");
+steps.forEach(() => dots.appendChild(document.createElement("i")));
+
+function show(i){
+  cur = i;
+  const s = steps[i];
+  ["nc","na","nd"].forEach(n => $(n).classList.toggle("active", n === s.at));
+  packet.style.left = pos[s.at];
+  setTimeout(() => {
+    packet.textContent = s.icon;
+    packet.classList.remove("pop"); void packet.offsetWidth; packet.classList.add("pop");
+  }, 700);
+  $("bubble").textContent = s.bubble;
+  $("st").textContent = s.t;
+  $("sp").textContent = s.p;
+  $("sc").textContent = typeof s.c === "function" ? s.c() : s.c;
+  [...dots.children].forEach((d, k) => d.className = k < i ? "done" : k === i ? "now" : "");
+}
+
+function reset(){
+  stop();
+  cur = -1;
+  packet.style.transition = "none"; packet.style.left = pos.nc; packet.textContent = "✍️";
+  void packet.offsetWidth; packet.style.transition = "";
+  ["nc","na","nd"].forEach(n => $(n).classList.toggle("active", n === "nc"));
+  $("bubble").textContent = "";
+  $("st").textContent = "▶ 재생을 눌러 시작하세요";
+  $("sp").textContent = "7단계로 메모 하나가 저장되기까지의 여행을 보여 드립니다.";
+  $("sc").textContent = "";
+  [...dots.children].forEach(d => d.className = "");
+  $("play").textContent = "▶ 재생";
+}
+
+function next(){ show(cur + 1 >= steps.length ? 0 : cur + 1); }
+function stop(){ playing = false; clearInterval(timer); $("play").textContent = "▶ 재생"; }
+function play(){
+  if (playing) { stop(); return; }
+  playing = true; $("play").textContent = "⏸ 멈춤";
+  if (cur < 0 || cur >= steps.length - 1) show(0); else next();
+  timer = setInterval(() => {
+    if (cur >= steps.length - 1) { stop(); return; }
+    next();
+  }, 3600);
+}
+
+$("play").onclick = play;
+$("next").onclick = () => { stop(); next(); };
+$("reset").onclick = reset;
+
+document.querySelectorAll("#modes button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("#modes button").forEach(x => x.classList.remove("on"));
+  b.classList.add("on");
+  mode = b.dataset.m;
+  const m = mode === "local" ? LOCAL : CLOUD;
+  $("tc").innerHTML = m.tc; $("ta").innerHTML = m.ta; $("ua").textContent = m.ua;
+  if (cur >= 0) show(cur);
+});
+
+reset();
+</script>
+</body>
+</html>
