@@ -58,6 +58,17 @@ def db_error(e: Exception) -> HTTPException:
 
 
 # ---------- 상태 확인 ----------
+@app.get("/")
+def root():
+    """주소창에 백엔드 주소만 열었을 때 보이는 안내"""
+    return {
+        "name": "my-api",
+        "status": "ok",
+        "docs": "/docs",
+        "endpoints": ["/health", "/health/db", "/products", "/cart/{cart_id}", "/notes"],
+    }
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
