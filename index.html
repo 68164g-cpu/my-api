@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>제주도 관광 가이드</title>
+<style>
+  :root{
+    --sea:#0e7c9b; --deep:#0a4a63; --sand:#f6efe3; --orange:#f28c28; --green:#3f8f5b; --ink:#1d2b33;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:"Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;color:var(--ink);background:#fff;line-height:1.7}
+  a{color:inherit;text-decoration:none}
+  header{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:center;
+    padding:14px 5vw;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);box-shadow:0 1px 8px rgba(0,0,0,.08)}
+  .logo{font-weight:800;color:var(--deep);font-size:1.15rem}
+  nav a{margin-left:22px;font-weight:600;font-size:.95rem}
+  nav a:hover{color:var(--orange)}
+  .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;color:#fff;padding:0 6vw;
+    background:linear-gradient(180deg,rgba(10,74,99,.35),rgba(10,74,99,.75)),
+    linear-gradient(160deg,#59c3d9 0%,#0e7c9b 55%,#0a4a63 100%)}
+  .hero h1{font-size:clamp(2.4rem,7vw,4.6rem);letter-spacing:-.02em;margin-bottom:12px}
+  .hero p{font-size:clamp(1rem,2.2vw,1.35rem);opacity:.95;max-width:620px}
+  .btn{display:inline-block;margin-top:30px;padding:14px 34px;border-radius:40px;background:var(--orange);color:#fff;font-weight:700;transition:.2s}
+  .btn:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.25)}
+  section{padding:90px 6vw;max-width:1180px;margin:0 auto}
+  h2{font-size:2rem;color:var(--deep);margin-bottom:8px}
+  .sub{color:#667;margin-bottom:38px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:24px}
+  .card{border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 4px 18px rgba(0,0,0,.09);transition:.25s}
+  .card:hover{transform:translateY(-6px);box-shadow:0 12px 28px rgba(0,0,0,.15)}
+  .thumb{height:150px;display:flex;align-items:center;justify-content:center;font-size:3.4rem}
+  .t1{background:linear-gradient(135deg,#ffd194,#f28c28)}
+  .t2{background:linear-gradient(135deg,#9be15d,#3f8f5b)}
+  .t3{background:linear-gradient(135deg,#a1c4fd,#0e7c9b)}
+  .t4{background:linear-gradient(135deg,#fbc2eb,#a18cd1)}
+  .t5{background:linear-gradient(135deg,#84fab0,#8fd3f4)}
+  .t6{background:linear-gradient(135deg,#fccb90,#d57eeb)}
+  .body{padding:20px}
+  .body h3{margin-bottom:6px}
+  .tag{display:inline-block;font-size:.75rem;background:var(--sand);color:var(--deep);padding:2px 10px;border-radius:12px;margin-top:8px}
+  .alt{background:var(--sand);max-width:none}
+  .alt>div{max-width:1180px;margin:0 auto}
+  .food .card .thumb{height:110px}
+  .tabs{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap}
+  .tabs button{border:2px solid var(--sea);background:#fff;color:var(--sea);padding:8px 22px;border-radius:30px;font-weight:700;cursor:pointer;font-size:.95rem}
+  .tabs button.on{background:var(--sea);color:#fff}
+  .day{display:none;background:#fff;border-radius:18px;padding:26px;box-shadow:0 4px 18px rgba(0,0,0,.08)}
+  .day.on{display:block}
+  .day li{list-style:none;padding:10px 0 10px 24px;border-left:3px solid var(--orange);margin-left:8px;position:relative}
+  .day li::before{content:"";position:absolute;left:-9px;top:18px;width:15px;height:15px;border-radius:50%;background:var(--orange)}
+  .day b{color:var(--deep)}
+  .tips{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
+  .tip{padding:22px;border-radius:16px;background:#fff;border-top:5px solid var(--green)}
+  footer{background:var(--deep);color:#cfe6ee;text-align:center;padding:36px 6vw;font-size:.9rem}
+  @media(max-width:640px){nav a{margin-left:12px;font-size:.82rem}}
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="#top">🍊 JEJU</a>
+  <nav><a href="#spots">명소</a><a href="#food">음식</a><a href="#course">추천코스</a><a href="#tips">여행팁</a></nav>
+</header>
+
+<div class="hero" id="top">
+  <h1>제주도, 쉼표가 되는 섬</h1>
+  <p>푸른 바다와 한라산, 오름과 돌담길. 바람과 감귤 향기가 가득한 제주에서 나만의 여행을 시작해 보세요.</p>
+  <a class="btn" href="#spots">관광지 둘러보기</a>
+</div>
+
+<section id="spots">
+  <h2>꼭 가봐야 할 명소</h2>
+  <p class="sub">제주의 대표 관광지 6곳을 소개합니다.</p>
+  <div class="grid">
+    <div class="card"><div class="thumb t1">🌅</div><div class="body"><h3>성산일출봉</h3><p>유네스코 세계자연유산. 정상에서 맞는 일출이 장관입니다.</p><span class="tag">동부 · 일출</span></div></div>
+    <div class="card"><div class="thumb t2">⛰️</div><div class="body"><h3>한라산 국립공원</h3><p>남한 최고봉(1,947m). 성판악·관음사 코스로 백록담에 오를 수 있어요.</p><span class="tag">중앙 · 등산</span></div></div>
+    <div class="card"><div class="thumb t3">🏖️</div><div class="body"><h3>협재·금능 해수욕장</h3><p>에메랄드빛 바다와 비양도 풍경이 어우러진 서쪽 대표 해변.</p><span class="tag">서부 · 해변</span></div></div>
+    <div class="card"><div class="thumb t4">🌊</div><div class="body"><h3>천지연 폭포</h3><p>울창한 숲 사이로 떨어지는 22m 폭포. 야간 조명도 아름답습니다.</p><span class="tag">남부 · 폭포</span></div></div>
+    <div class="card"><div class="thumb t5">🌋</div><div class="body"><h3>만장굴</h3><p>세계적 규모의 용암동굴. 한여름에도 시원해 더위를 피하기 좋아요.</p><span class="tag">동부 · 동굴</span></div></div>
+    <div class="card"><div class="thumb t6">🌼</div><div class="body"><h3>새별오름</h3><p>들불축제로 유명한 오름. 가을 억새와 석양 포인트로 인기입니다.</p><span class="tag">서부 · 오름</span></div></div>
+  </div>
+</section>
+
+<section class="alt food" id="food"><div>
+  <h2>제주의 맛</h2>
+  <p class="sub">제주에서만 맛볼 수 있는 향토 음식.</p>
+  <div class="grid">
+    <div class="card"><div class="thumb t1">🐖</div><div class="body"><h3>흑돼지구이</h3><p>쫄깃하고 고소한 육질, 멜젓과 함께 먹는 것이 정석.</p></div></div>
+    <div class="card"><div class="thumb t3">🐟</div><div class="body"><h3>갈치조림 · 고등어회</h3><p>신선한 제주 바다의 은갈치와 고등어를 즐겨 보세요.</p></div></div>
+    <div class="card"><div class="thumb t2">🍜</div><div class="body"><h3>고기국수</h3><p>진한 돼지 육수에 굵은 면을 말아 낸 제주식 국수.</p></div></div>
+    <div class="card"><div class="thumb t6">🍊</div><div class="body"><h3>감귤 · 한라봉</h3><p>겨울이 제철. 감귤 초콜릿과 감귤 에이드도 인기 간식.</p></div></div>
+  </div>
+</div></section>
+
+<section id="course">
+  <h2>2박 3일 추천 코스</h2>
+  <p class="sub">처음 제주를 찾는 분들을 위한 알찬 일정.</p>
+  <div class="tabs">
+    <button class="on" data-d="d1">1일차 · 동부</button>
+    <button data-d="d2">2일차 · 남부/중앙</button>
+    <button data-d="d3">3일차 · 서부</button>
+  </div>
+  <ul class="day on" id="d1">
+    <li><b>09:00</b> 제주공항 도착 · 렌터카 수령</li>
+    <li><b>11:00</b> 만장굴 탐방</li>
+    <li><b>13:00</b> 세화·김녕 해안 카페에서 점심</li>
+    <li><b>15:30</b> 성산일출봉 등반</li>
+    <li><b>18:00</b> 성산 흑돼지 저녁</li>
+  </ul>
+  <ul class="day" id="d2">
+    <li><b>09:00</b> 한라산 영실 코스 가벼운 트레킹</li>
+    <li><b>12:30</b> 서귀포 올레시장 점심</li>
+    <li><b>14:30</b> 천지연 폭포 · 정방폭포</li>
+    <li><b>17:00</b> 주상절리대 산책</li>
+    <li><b>19:00</b> 서귀포 갈치조림 저녁</li>
+  </ul>
+  <ul class="day" id="d3">
+    <li><b>09:30</b> 협재 해수욕장 산책</li>
+    <li><b>12:00</b> 한림 고기국수 점심</li>
+    <li><b>14:00</b> 새별오름 · 오설록 티뮤지엄</li>
+    <li><b>17:30</b> 애월 해안도로 드라이브 &amp; 노을</li>
+    <li><b>20:00</b> 제주공항 출발</li>
+  </ul>
+</section>
+
+<section class="alt" id="tips"><div>
+  <h2>여행 꿀팁</h2>
+  <p class="sub">출발 전에 꼭 확인하세요.</p>
+  <div class="tips">
+    <div class="tip"><h3>🚗 이동수단</h3><p>대중교통이 제한적이라 렌터카를 추천합니다. 성수기에는 미리 예약하세요.</p></div>
+    <div class="tip"><h3>🌤️ 최적의 시기</h3><p>봄(유채꽃), 가을(억새)이 가장 쾌적합니다. 여름은 태풍 예보를 확인하세요.</p></div>
+    <div class="tip"><h3>🧥 날씨 대비</h3><p>바람이 강하고 날씨 변화가 잦아 겉옷과 우산은 필수입니다.</p></div>
+    <div class="tip"><h3>🥾 한라산 탐방</h3><p>성판악·관음사 코스는 탐방 예약제입니다. 입산 시간 제한도 확인하세요.</p></div>
+  </div>
+</div></section>
+
+<footer>
+  <p>🍊 제주도 관광 가이드 · 운영 시간과 요금은 방문 전 공식 안내(visitjeju.net)에서 확인하세요.</p>
+</footer>
+
+<script>
+  document.querySelectorAll('.tabs button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.tabs button').forEach(function(x){x.classList.remove('on')});
+      document.querySelectorAll('.day').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');
+      document.getElementById(b.dataset.d).classList.add('on');
+    });
+  });
+</script>
+</body>
+</html>
